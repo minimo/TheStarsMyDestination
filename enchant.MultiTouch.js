@@ -24,6 +24,7 @@ enchant.MultiTouch = enchant.Class.create(enchant.Group, {
             this.enable = true;
         } else if (navigator.userAgent.indexOf('Android') > 0) {
             this.enable = true;
+        } else {
         }
     },
     touchStart: function(e) {
@@ -54,8 +55,7 @@ enchant.MultiTouch = enchant.Class.create(enchant.Group, {
             this.touchList[target].y = e.x;
             return target;
         } else {
-            this.touchList[0].x = e.x;
-            this.touchList[0].y = e.x;
+            this.touchList[0] = {id:0, x:e.x, y:e.y};
             return 0;
         }
     },
@@ -89,5 +89,8 @@ enchant.MultiTouch = enchant.Class.create(enchant.Group, {
 });
 
 MultiTouch = enchant.MultiTouch;
+
+
+;
 
 

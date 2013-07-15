@@ -19,7 +19,8 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         this.backgroundColor = 'rgb(0,0,0)';
 
         this.worldSize = 320*4; //世界の一辺の長さ
-        this.worldScale = 0.5;    //縮尺
+        this.worldScale = 0.5;  //縮尺
+        this.attackRate = 0.5;  //派兵レート
 
         //マルチタッチ制御
         this.multiTouch = new MultiTouch();
@@ -105,10 +106,10 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         this.time = 0;
     },
     onenterframe: function() {
-        if (game.input.up) this.base.vy+=3;
-        if (game.input.down) this.base.vy-=3;
-        if (game.input.left) this.base.vx+=3;
-        if (game.input.right) this.base.vx-=3;
+        if (game.input.up) this.base.vy+=2;
+        if (game.input.down) this.base.vy-=2;
+        if (game.input.left) this.base.vx+=2;
+        if (game.input.right) this.base.vx-=2;
 
         if (this.base.x > 0) {
             this.base.x = 0;
@@ -139,6 +140,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         this.clearMap();
         //プレイヤー主星
         var pm = new Planet(this, this.infoLayer);
+        pm.id = 0;
         pm.x = 32;
         pm.y = 32;
         pm.hp = 200;
@@ -151,6 +153,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
 
         //ＣＰＵ主星
         var pm = new Planet(this, this.infoLayer);
+        pm.id = 1;
         pm.x = this.worldSize-64;
         pm.y = this.worldSize-64;
         pm.hp = 200;
@@ -163,6 +166,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
 
         for (var i = 0; i < MAX_PLANETS; i++) {
             var p = new Planet(this, this.infoLayer);
+            p.id = i+2;
             p.sprite.frame = rand(10)+1;
             p.x = rand(this.worldSize-64*p.sprite.scaleX+12)+16;
             p.y = rand(this.worldSize-64*p.sprite.scaleY+12)+16;
@@ -204,6 +208,13 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         }
         return null;
     },
+    //ユニット投入
+    enterUnit: function(type, from, to, power) {
+        var u = new Unit(this, this.infoLayer);
+        u.x = from.x;
+        u.y = from.y;
+        this.addChild(u);
+    },
     //操作系
     touchX: 0,
     touchY: 0,
@@ -218,6 +229,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         if (this.pointing) return;
         this.touch = true;
 
+        //ワールド座標上のクリック座標
         var wx = (-this.base.x+e.x)/this.worldScale;
         var wy = (-this.base.y+e.y)/this.worldScale;
         var p = this.checkMap(wx, wy);
@@ -245,7 +257,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
             var wy = (-this.base.y+e.y)/this.worldScale;
             this.arrow.end = {x: wx, y: wy};
             var p = this.checkMap(wx, wy);
-            if (p != null && this.targetFrom !== this.targetTo) {
+            if (p != null && p.id != this.targetFrom.id) {
                 var ax = p.x+32*p.scaleX;
                 var ay = p.y+32*p.scaleY;
                 this.targetTo = p;
@@ -275,15 +287,38 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         this.multiTouch.touchEnd(e);
 
         if (this.pointing) {
-            var ex = e.x / this.worldScale;
-            var ey = e.y / this.worldScale;
-            var wx = -this.base.x+ex;
-            var wy = -this.base.y+ey;
+            var wx = (-this.base.x+e.x)/this.worldScale;
+            var wy = (-this.base.y+e.y)/this.worldScale;
             this.arrow.end = {x: wx, y: wy};
+            var p = this.checkMap(wx, wy);
+            if (p != null && p.id != this.targetFrom.id) {
+                var ax = p.x+32*p.scaleX;
+                var ay = p.y+32*p.scaleY;
+                this.targetTo = p;
+                this.targetTo.pointing = true;
+                this.arrow.end = {x: ax, y: ay};
+            } else {
+                if (this.targetTo) {
+                    this.targetTo.pointing = false;
+                    this.targetTo = null;
+                }
+            }
+
+            //始点と終点が設定されている場合、ユニットを投入
+            if (this.targetFrom != null && this.targetTo != null) {
+                var f = this.targetFrom;
+                var t = this.targetTo;
+                var p = ~~(f.hp*this.attackRate);
+                f.hp -= p;
+                this.enterUnit(f, t, p);
+            }
+
             this.arrow.pointing = false;
             this.pointing = false;
             if (this.targetFrom) this.targetFrom.pointing = false;
             if (this.targetTo) this.targetTo.pointing = false;
+            this.targetFrom = null;
+            this.targetTo = null;
         } else {
             this.mapMoving = false;
             this.base.x += e.x - this.touchX;

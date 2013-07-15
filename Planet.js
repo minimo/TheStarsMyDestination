@@ -16,7 +16,8 @@ enchant();
 Planet = enchant.Class.create(enchant.Group, {
     initialize: function(parent, infoLayer) {
         enchant.Group.call(this);
-        
+
+        this.id = -1;        
         this.pointing = false;
 
         //ポインタ
@@ -84,17 +85,17 @@ Planet = enchant.Class.create(enchant.Group, {
             }
         }
         if (this.pointing) {
-            this.pointer.opacity += 0.1;
+            this.pointer.opacity += 0.2;
             if (this.pointer.opacity > 1) {
                 this.pointer.opacity = 1;
             }
         } else {
-            this.pointer.opacity -= 0.1;
+            this.pointer.opacity -= 0.2;
             if (this.pointer.opacity < 0) {
                 this.pointer.opacity = 0;
             }
         }
-        if (this.time % 30 == 0) {
+        if (this.type != TYPE_NEUTRAL && this.time % 30 == 0) {
             this.hp++;
         }
         if (this.type == TYPE_PLAYER) {
@@ -112,4 +113,9 @@ Planet = enchant.Class.create(enchant.Group, {
     },
     dead: function() {
     },
+    radius: {
+        get: function() {
+            return 32*this.scaleX;
+        },
+    }
 });

@@ -69,6 +69,7 @@ window.onload = function() {
     game.preload(
         'assets/pointer.png', 'assets/icon0.png',
         'assets/planet.png', 'assets/planet_mono.png',
+        'assets/frigate1.png',
         'assets/back.png'
     );
     if (soundEnable) {

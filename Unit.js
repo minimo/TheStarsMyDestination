@@ -18,12 +18,12 @@ Unit = enchant.Class.create(enchant.Group, {
         enchant.Group.call(this);
         
         //スプライト
-        var s = this.sprite = new Sprite(32,32);
-        s.image = game.assets['media/unit1.png']
-        s.frame = FRAME_WALK_D;
+        var s = this.sprite = new Sprite(64,64);
+        s.image = game.assets['assets/frigate1.png'];
+        s.originX = s.originY = 0;
+        s.scaleX = s.scaleY = 0.5;
+        s.frame = 0;
         this.addChild(s);
-        this.frameBase = FRAME_WALK_D;
-        this.frameAdd = 0;
 
         //親シーン
         this.parent = parent;
@@ -40,7 +40,7 @@ Unit = enchant.Class.create(enchant.Group, {
         this.id = -1;   //ユニットＩＤ
         
         //移動目標
-        this.target = null; //目標ユニット  
+        this.target = null; //移動目標
         this.targetX = 0;   //目標座標（ユニット以外の場合）
         this.targetY = 0;
         
@@ -123,23 +123,19 @@ Unit = enchant.Class.create(enchant.Group, {
             var rot = Math.atan2(ty-this.y,tx-this.x)*toDeg;
             //右
             if (-45 < rot || rot < 45) {
-                this.direction = 0;
-                this.frameBase = FRAME_WALK_R;
+                this.frame = 0;
             }
             //下
             if (rot >= 45 && rot < 135) {
-                this.direction = 1;
-                this.frameBase = FRAME_WALK_D;
+                this.frame = 0;
             }
             //左
             if (rot > 135 || rot < -135) {
-                this.direction = 2;
-                this.frameBase = FRAME_WALK_L;
+                this.frame = 0;
             }
             //上
             if (rot < -45 && rot >= -135) {
-                this.direction = 3;
-                this.frameBase = FRAME_WALK_U;
+                this.frame = 0;
             }
 
             //移動アニメーション
@@ -154,7 +150,7 @@ Unit = enchant.Class.create(enchant.Group, {
         }
 
         //停止中はＨＰ減少が少ない
-        if (!this.move && this.time % 90 == 0) this.hp--;
+//        if (!this.move && this.time % 90 == 0) this.hp--;
 
         //攻撃処理
         if (this.attackTarget) {
@@ -221,6 +217,17 @@ Unit = enchant.Class.create(enchant.Group, {
             }
         }
         this.parent.addChild(e);
+    },
+    frame: {
+        get: function() {
+            return this.sprite.frame;
+        },
+        set: function(f) {
+            this.sprite.frame = f;
+        }
+    },
+});
+  this.parent.addChild(e);
     },
     frame: {
         get: function() {
