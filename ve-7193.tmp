@@ -34,7 +34,7 @@ Unit = enchant.Class.create(enchant.Group, {
         this.hp = 10;  //体力
         this.ap = 1;    //攻撃力
         this.dp = 1;    //防御力
-        this.speed = 2; //移動速度
+        this.speed = 1; //移動速度
         this.move = true;   //行動フラグ
         this.type = 0;
         this.using = true;
@@ -53,7 +53,6 @@ Unit = enchant.Class.create(enchant.Group, {
         this.direction = 0;
         this.vx = 0;
         this.vy = 0;
-        this.arrive = false;
 
         //攻撃情報
         this.attack = false;
@@ -94,7 +93,6 @@ Unit = enchant.Class.create(enchant.Group, {
             if (dis < 20) {
                 this.attackTarget = this.target;
                 this.move = false;
-                this.arrive = true;
             } else if (dis < 50) {  //距離５０で攻撃開始
                 this.attackTarget = this.target;
             }
@@ -114,16 +112,14 @@ Unit = enchant.Class.create(enchant.Group, {
             if (-158 >= rot && rot > -113-45) this.frame = 5;  //左上
         }
 
-        //近接攻撃処理
-        if (this.attackTarget && !this.arrive) {
-            if (this.age % 5 ==0)
-            this.beam(this.attackTarget);
+        //攻撃処理
+        if (this.attackTarget) {
+            var at = this.attackTarget;
+//            this.beam(this.attackTarget);
+            this.hp=0;
+            this.attackTarget.hp-=this.hp;
+            this.attackTarget = null;
 //            if (soundEnable) game.assets['media/se_attacksword_4.mp3'].clone().play();
-        }
-
-        //目標到着
-        if (this.attackTarget && this.arrive) {
-            this.parent.removeChild(this);
         }
 
         //死亡判定
@@ -173,22 +169,6 @@ Unit = enchant.Class.create(enchant.Group, {
     },
     //ビーム出す
     beam: function(target) {
-        if (!target) return;
-
-        //爆発
-        var ex = Sprite(64,64);
-        ex.image = game.assets['assets/bomb.png'];
-        ex.x = target.x+rand(30);
-        ex.y = target.y+rand(30);
-        ex.frame = 0;
-        ex.onenterframe = function(){
-            if (this.age % 3 == 0) {
-                this.frame++;
-                if (this.frame == 8)this.parentNode.removeChild(this);
-            }
-        }
-        this.addChild(ex);
-/*
         var b = Sprite(1,1);
         var s = b.sprite = new Surface(1,1);
         s.context.fillStyle = 'rgba(128,255,128,1)'
@@ -198,17 +178,15 @@ Unit = enchant.Class.create(enchant.Group, {
 		    if (this.age > 30) this.parent.removeChild(this);
 		}
 		this.parent.addChild(b);
-*/
     },
     dead: function() {
         this.using = false;
         this.parent.removeChild(this);
-
         var e = new Sprite(32, 48);
-        e.image = game.assets['assets/effect.png'];
+        e.image = game.assets['assets/effect1.png'];
         e.frame = 0;
         e.x = this.x;
-        e.y = this.y;
+        e.y = this.y-16;
         e.parent = this.parent;
         e.onenterframe = function() {
             if (this.age % 3 == 0) {

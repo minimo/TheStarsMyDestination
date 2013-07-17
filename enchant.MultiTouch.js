@@ -91,6 +91,3 @@ enchant.MultiTouch = enchant.Class.create(enchant.Group, {
 MultiTouch = enchant.MultiTouch;
 
 
-;
-
-

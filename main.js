@@ -29,7 +29,12 @@ var smartphone = false;
 //乱数発生 0～max-1
 var rand = function( max ){ return ~~(Math.random() * max); }
 var toRad = 3.14159/180;    //弧度法toラジアン変換
-var toDeg = 180/3.14159;    //ラジアンto弧度法変換
+var toDeg = 180 / 3.14159;    //ラジアンto弧度法変換
+var distance = function(from, to) {
+    var x = from.x - to.x, y = from.y - to.y;
+    return Math.sqrt(x * x + y * y);
+}
+
 
 window.onload = function() {
     soundEnable = false;
@@ -70,6 +75,7 @@ window.onload = function() {
         'assets/pointer.png', 'assets/icon0.png',
         'assets/planet.png', 'assets/planet_mono.png',
         'assets/frigate1.png',
+        'assets/bomb.png','assets/effect.png',
         'assets/back.png'
     );
     if (soundEnable) {

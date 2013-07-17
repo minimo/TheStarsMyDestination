@@ -32,15 +32,14 @@ Planet = enchant.Class.create(enchant.Group, {
         p.image.context.fillStyle = 'rgba(0, 0, 0, 1.0)'
         p.image.context.arc(48, 48, 32, 0, Math.PI*2, true);
         p.image.context.fill();
-        p.x = p.y = -16;
-        p.originX = p.originY = 0;  //拡縮の基準点を左上にする
+        p.x = p.y = -48;
         p.opacity = 0;
         this.addChild(p);
 
         //スプライト
         var s = this.sprite = new Sprite(64,64);
         s.image = game.assets['assets/planet_mono.png'];
-        s.originX = s.originY = 0;  //拡縮の基準点を左上にする
+        s.x = s.y = -32;
         s.opacity = 0;
         this.addChild(s);
 
@@ -54,6 +53,7 @@ Planet = enchant.Class.create(enchant.Group, {
         this.rank = rand(10);                   //惑星規模
         this.hp = rand(50)+50+this.rank*5;      //防衛力
         this.pointing = false;                  //選択されてるフラグ
+        this.using = true;
         
         //ＨＰ表示
         var d = this.dsp = new Label("");
@@ -91,8 +91,8 @@ Planet = enchant.Class.create(enchant.Group, {
             }
         } else {
             this.pointer.opacity -= 0.2;
-            if (this.pointer.opacity < 0) {
-                this.pointer.opacity = 0;
+            if (this.pointer.opacity < 0.0) {
+                this.pointer.opacity = 0.0;
             }
         }
         if (this.type != TYPE_NEUTRAL && this.time % 30 == 0) {
@@ -117,5 +117,5 @@ Planet = enchant.Class.create(enchant.Group, {
         get: function() {
             return 32*this.scaleX;
         },
-    }
+    },
 });

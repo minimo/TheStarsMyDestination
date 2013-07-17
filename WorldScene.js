@@ -28,6 +28,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         //マップベース
         this.base = new Group();
         this.addChild(this.base);
+        this.base.parent = this;
         this.base.scaleX = this.base.scaleY = this.worldScale;
         this.base.originX = this.base.originY = 0;  //拡縮の基準点を左上にする
         this.base.vx = this.base.vy = 0;
@@ -38,6 +39,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
                 this.vx *= 0.9;
                 this.vy *= 0.9;
             }
+            this.scaleX = this.scaleY = this.parent.worldScale;
         }
 
         //バックグラウンド
@@ -68,6 +70,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         
         //ユニット用配列
         this.units = [];
+        this.unitID = 0;
 
         //マップ表示
         var m = this.map = new Sprite(64,64);
@@ -106,10 +109,14 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         this.time = 0;
     },
     onenterframe: function() {
+/*
         if (game.input.up) this.base.vy+=2;
         if (game.input.down) this.base.vy-=2;
         if (game.input.left) this.base.vx+=2;
         if (game.input.right) this.base.vx-=2;
+*/
+        if (game.input.up) this.worldScale+=0.1;
+        if (game.input.down) this.worldScale-=0.1;
 
         if (this.base.x > 0) {
             this.base.x = 0;
@@ -127,10 +134,29 @@ WorldScene = enchant.Class.create(enchant.Scene, {
             this.base.y = -this.worldSize * this.worldScale + game.height;
             this.base.vy = 0;
         }
+        
+        //各種判定処理
+        this.tickWorld();
 
+        //ＣＰＵ思考
         this.think();
 
         this.time++;
+    },
+    tickWorld: function() {
+        //ユニット攻撃判定
+        
+        //ユニット、惑星攻撃判定
+        for( var i = 0, len = this.units.length; i < len; i++) {
+            var u = this.units[i];
+            if (u.targetTo) {
+                var p = u.targetTo;
+                var x = u.x - p.y, y = u.y - p.y;
+                var d = Math.sqrt(x*x+y*y);
+                if (d < 50) {
+                }
+            }
+        }
     },
     //ＣＰＵ思考ルーチン
     think: function() {
@@ -175,7 +201,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
                 var x = p.x - pl.x;
                 var y = p.y - pl.y;
                 var dis = Math.sqrt(x * x + y * y);
-                if (dis < 150){
+                if (dis < 100){
                     p.x = rand(this.worldSize-48)+16;
                     p.y = rand(this.worldSize-48)+16;
                     i2 = 0;
@@ -200,9 +226,9 @@ WorldScene = enchant.Class.create(enchant.Scene, {
     checkMap: function(x, y) {
         for (var i = 0; i < this.planets.length; i++) {
             var p = this.planets[i];
-            var sx = 64*p.scaleX;
-            var sy = 64*p.scaleY;
-            if (p.x < x && x < p.x+sx && p.y < y && y < p.y+sy) {
+            var sx = 32*p.scaleX;
+            var sy = 32*p.scaleY;
+            if (p.x-sx < x && x < p.x+sx && p.y-sx < y && y < p.y+sy) {
                 return p;
             }
         }
@@ -210,10 +236,22 @@ WorldScene = enchant.Class.create(enchant.Scene, {
     },
     //ユニット投入
     enterUnit: function(type, from, to, power) {
-        var u = new Unit(this, this.infoLayer);
-        u.x = from.x;
-        u.y = from.y;
-        this.addChild(u);
+        var num = ~~(power / 1);
+        for (var i = 0; i < num; i++) {
+            var u = new Unit(this.unitLayer, this.infoLayer);
+            var rad = rand(360)*toRad;
+            var dis = rand(40)+30;
+            u.type = type;
+            u.id = this.unitID;
+            u.x = from.x+Math.sin(rad)*dis;
+            u.y = from.y+Math.cos(rad)*dis;
+            u.hp = 20;
+            u.setTarget(to);
+            this.unitLayer.addChild(u);
+            this.units.push(u);
+            this.unitID++;
+        }
+        from.hp -= power;
     },
     //操作系
     touchX: 0,
@@ -233,9 +271,9 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         var wx = (-this.base.x+e.x)/this.worldScale;
         var wy = (-this.base.y+e.y)/this.worldScale;
         var p = this.checkMap(wx, wy);
-        if (p !== null) {
-            var ax = p.x+32*p.scaleX;
-            var ay = p.y+32*p.scaleY;
+        if (p !== null && p.type == TYPE_PLAYER) {
+            var ax = p.x;
+            var ay = p.y;
             this.pointing = true;
             this.arrow.start = {x: ax, y: ay};
             this.arrow.end = {x: ax, y: ay};
@@ -258,8 +296,8 @@ WorldScene = enchant.Class.create(enchant.Scene, {
             this.arrow.end = {x: wx, y: wy};
             var p = this.checkMap(wx, wy);
             if (p != null && p.id != this.targetFrom.id) {
-                var ax = p.x+32*p.scaleX;
-                var ay = p.y+32*p.scaleY;
+                var ax = p.x;
+                var ay = p.y;
                 this.targetTo = p;
                 this.targetTo.pointing = true;
                 this.arrow.end = {x: ax, y: ay};
@@ -287,30 +325,12 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         this.multiTouch.touchEnd(e);
 
         if (this.pointing) {
-            var wx = (-this.base.x+e.x)/this.worldScale;
-            var wy = (-this.base.y+e.y)/this.worldScale;
-            this.arrow.end = {x: wx, y: wy};
-            var p = this.checkMap(wx, wy);
-            if (p != null && p.id != this.targetFrom.id) {
-                var ax = p.x+32*p.scaleX;
-                var ay = p.y+32*p.scaleY;
-                this.targetTo = p;
-                this.targetTo.pointing = true;
-                this.arrow.end = {x: ax, y: ay};
-            } else {
-                if (this.targetTo) {
-                    this.targetTo.pointing = false;
-                    this.targetTo = null;
-                }
-            }
-
             //始点と終点が設定されている場合、ユニットを投入
             if (this.targetFrom != null && this.targetTo != null) {
                 var f = this.targetFrom;
                 var t = this.targetTo;
                 var p = ~~(f.hp*this.attackRate);
-                f.hp -= p;
-                this.enterUnit(f, t, p);
+                this.enterUnit(TYPE_PLAYER, f, t, p);
             }
 
             this.arrow.pointing = false;
