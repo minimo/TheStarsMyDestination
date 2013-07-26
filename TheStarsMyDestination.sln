@@ -24,7 +24,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "server", "server", "{45E834
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{299B5E89-9436-4025-B01C-7CB210D07891}"
 	ProjectSection(SolutionItems) = preProject
+		lib\draw.text.js = lib\draw.text.js
 		lib\enchant.js = lib\enchant.js
+		lib\nineleap.enchant.js = lib\nineleap.enchant.js
 	EndProjectSection
 EndProject
 Global

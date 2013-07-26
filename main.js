@@ -12,13 +12,16 @@
 
 enchant();
 
+//マップ設定
+var WORLD_SIZE = 320*3;        
+var MAX_PLANETS = 20;
+
 
 //惑星タイプ
 var TYPE_NEUTRAL = 0;
 var TYPE_PLAYER = 1;
 var TYPE_ENEMY = 2;
-
-var MAX_PLANETS = 30;
+var TYPE_PLANET = [1,2,3,5,6,7,8,9,11];
 
 //実行環境情報
 var userAgent = "";
@@ -83,6 +86,10 @@ window.onload = function() {
         );
     }
 
+    //KeyBind
+    game.keybind(90, "a");
+    game.keybind(88, "b");
+    
     game.onload = function() {
         world = new WorldScene();
         game.pushScene(world);

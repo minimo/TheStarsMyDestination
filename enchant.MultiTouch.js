@@ -17,7 +17,7 @@ enchant.MultiTouch = enchant.Class.create(enchant.Group, {
         this.touchList = [];    //タッチ内容保存
 
         //マルチタッチ対応フラグ
-        this.enabel = false;
+        this.enable = false;
 
         //iOSとAndroid以外はシングルタッチとして動作
         if ((navigator.userAgent.indexOf('iPhone') > 0 && navigator.userAgent.indexOf('iPad') == -1) || navigator.userAgent.indexOf('iPod') > 0) {
@@ -26,19 +26,25 @@ enchant.MultiTouch = enchant.Class.create(enchant.Group, {
             this.enable = true;
         } else {
         }
+        this.enabel = false;
     },
-    touchStart: function(e) {
+    onenterframe: function() {
+        for (var i = 0, len = this.touchList.length; i < len; i++) {
+            this.touchList[i].time++;
+        }
+    },
+    start: function(e) {
         if (this.enable) {
             var id = this.touchID;
-            this.touchList.push({ id: this.touchID, x: e.x, y: e.y });
+            this.touchList.push({ id: this.touchID, x: e.x, y: e.y, time:0 });
             this.touchID++;
             return id;
         } else {
-            this.touchList[0] = { id: this.touchID, x: e.x, y: e.y };
+            this.touchList[0] = { id: this.touchID, x: e.x, y: e.y, time:0 };
             return 0;
         }
     },
-    touchMove: function(e) {
+    move: function(e) {
         if (this.enable) {
             var min = 99999;
             var target = 9999;
@@ -53,13 +59,13 @@ enchant.MultiTouch = enchant.Class.create(enchant.Group, {
             }
             this.touchList[target].x = e.x;
             this.touchList[target].y = e.x;
-            return target;
+            return this.touchList[target].id;
         } else {
             this.touchList[0] = {id:0, x:e.x, y:e.y};
             return 0;
         }
     },
-    touchEnd: function(e) {
+    end: function(e) {
         if (this.enable) {
             var min = 99999;
             var target = 9999;
@@ -72,15 +78,16 @@ enchant.MultiTouch = enchant.Class.create(enchant.Group, {
                     min = dis;
                 }
             }
+            var id = this.touchList[target].id;
             this.touchList.splice(target, 1);
-            return target;
+            return id;
         } else {
             this.touchList = [];
             return 0;
         }
     },
     numTouch: function() {
-        return touchList.length;
+        return this.touchList.length;
     },
     reset: function() {
         this.touchID = 0;

@@ -34,6 +34,7 @@ Planet = enchant.Class.create(enchant.Group, {
         p.image.context.fill();
         p.x = p.y = -48;
         p.opacity = 0;
+        p.compositeOperation = 'lighter';
         this.addChild(p);
 
         //スプライト
@@ -42,29 +43,34 @@ Planet = enchant.Class.create(enchant.Group, {
         s.x = s.y = -32;
         s.opacity = 0;
         this.addChild(s);
+        this.width = s.width;
+        this.height = s.height;
 
         //親シーン
         this.parent = parent;
         this.infoLayer = infoLayer;
 
         //ステータス
-        this.main = false;                      //主星フラグ
+        this.main = false;          //主星フラグ
         this.type = TYPE_NEUTRAL;
-        this.rank = rand(10);                   //惑星規模
-        this.hp = rand(50)+50+this.rank*5;      //防衛力
-        this.pointing = false;                  //選択されてるフラグ
+        this.rank = 1               //惑星規模
+        this.hp = 100;              //防衛力
+        this.pointing = false;      //選択されてるフラグ
         this.using = true;
-        
+        this.change = true;         //ステータス変更フラグ
+        this.enemyattack = false;   //ＣＰＵ攻撃済みフラグ
+
         //ＨＰ表示
         var d = this.dsp = new Label("");
 		d.color = "#ffffff";
-		d.font = "20px bold";
-//        d.textAlign = 'center';
+		d.font = "30px bold";
+		d.textAlign = 'center';
         d.parent = this;
         d.opacity = 0;
         d.onenterframe = function() {
-            this.x = this.parent.x;
-            this.y = this.parent.y;
+//            var col = Math.LOG10E * Math.log(this.parent.hp)+1; //耐久力の桁数
+            this.x = this.parent.x-this.width/2;
+            this.y = this.parent.y-16-40;
             this.text = ""+this.parent.hp;
         }
         this.infoLayer.addChild(d);
@@ -73,8 +79,8 @@ Planet = enchant.Class.create(enchant.Group, {
     },
     onenterframe: function() {
         if (this.time == 0) {
-            this.scaleX = 0.5 + this.rank * 0.1;
-            this.scaleY = 0.5 + this.rank * 0.1;
+//            this.scaleX = 0.5 + this.rank * 0.1;
+//            this.scaleY = 0.5 + this.rank * 0.1;
             this.center = {x: 64*this.sprite.scaleX, y: 64*this.sprite.scaleY};
         } else {
             this.sprite.opacity += 0.1;
@@ -95,24 +101,70 @@ Planet = enchant.Class.create(enchant.Group, {
                 this.pointer.opacity = 0.0;
             }
         }
-        if (this.type != TYPE_NEUTRAL && this.time % 30 == 0) {
-            this.hp++;
-        }
         if (this.type == TYPE_PLAYER) {
-            this.sprite.image = game.assets['assets/planet.png'];
-            this.dsp.color = "#aaaaff";
+            if (this.time % 30 == 0)this.hp++;
+            if (this.change) {
+                this.sprite.image = game.assets['assets/planet.png'];
+                this.dsp.color = "#8888ff";
+                this.change = false;
+            }
         }
         if (this.type == TYPE_ENEMY) {
-            this.sprite.image = game.assets['assets/planet.png'];
-            this.dsp.color = "#ffaaaa";
+            if (this.time % 50 == 0)this.hp++;
+            if (this.change) {
+                this.sprite.image = game.assets['assets/planet.png'];
+                this.dsp.color = "#ffaaaa";
+                this.change = false;
+            }
         }
         this.time++;
     },
     onremoved: function() {
         this.infoLayer.removeChild(this.dsp);
     },
+    //攻撃エフェクト
+    beam: function(target) {
+        if (!target) return;
+        
+        var from = {x:this.x+rand(this.radius)-this.radius/2, y:this.y+rand(this.radius)-this.radius/2};
+        var to   = {x:target.x+rand(20)-10, y:target.y+rand(20)-10};
+        var color = 'rgba(128, 128, 255, 1.0)';
+        if (this.type == TYPE_ENEMY)color = 'rgba(255, 0, 0, 1.0)'
+        if (this.type == TYPE_NEUTRAL)color = 'rgba(255, 255, 255, 1.0)'
+        var b = new Beam(from, to, color);
+        this.parentNode.addChild(b);
+
+        if (rand(100)>90)return;
+
+        var e = new Sprite(32, 32);
+        e.image = game.assets['assets/bomb.png'];
+        e.frame = 0;
+        e.x = to.x-16;
+        e.y = to.y-16;
+        e.parent = this.parent;
+        e.onenterframe = function() {
+            if (this.age % 3 == 0) {
+                this.frame++;
+                if (this.frame == 8) {
+                    this.remove();
+                }
+            }
+        }
+        this.parentNode.addChild(e);
+
+        target.hp--;
+    },
+    damage: function(from, pow) {
+        this.hp -= pow;
+        if (this.hp < 0){
+            this.hp*=-1;
+            this.type = from.type;
+            this.change = true;
+        }
+    },
     dead: function() {
     },
+    //直径の取得
     radius: {
         get: function() {
             return 32*this.scaleX;
