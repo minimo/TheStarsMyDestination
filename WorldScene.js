@@ -229,7 +229,8 @@ WorldScene = enchant.Class.create(enchant.Scene, {
                 }
                 if (bonus > 5400) bonus = 5400;
                 if (score < 1) score = 1;
-                game.end(score + bonus, "WIN! SCORE:" + score + bonus);
+                score+=bonus;
+                game.end(score, "WIN! SCORE:" +score);
             }
 
             //プレイヤー敗北
