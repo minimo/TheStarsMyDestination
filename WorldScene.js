@@ -31,6 +31,9 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         this.worldScale = 0.7;  //縮尺
         this.attackRate = 0.5;  //派兵レート
 
+        this.scaleCenterX = 0;  //縮尺変更時中心点
+        this.scaleCenterY = 0;
+
         //マルチタッチ制御
         this.multiTouch = new MultiTouch();
         this.addChild(this.multiTouch);
@@ -434,7 +437,7 @@ WorldScene = enchant.Class.create(enchant.Scene, {
     singletouchID: 0,
     targetFrom: null,
     targetTo: null,
-    pinchDistance: 0,
+    pinchDistance: -1,
     ontouchstart: function(e) {
         var id = this.multiTouch.start(e);
         if (this.multiTouch.numTouch() == 1) {
@@ -618,8 +621,26 @@ WorldScene = enchant.Class.create(enchant.Scene, {
         }
     },
     multiTouchMove: function(e) {
+        //マップスケール操作
+        if (this.controlmode == CONTROL_MAPSCALE) {
+            //２点間の距離を計算
+            var p1 = this.multiTouch.touchList[0];
+            var p2 = this.multiTouch.touchList[1];
+            var x = p1.x-p2.x;
+            var y = p1.y-p2.y;
+            var dis = Math.sqrt(x*x+y*y);
+            if (this.pinchDistance == -1)this.pinchDistance = dis;
+            var ps = dis - this.pinchDistance;
+            this.worldScane += dis/10;
+            if (this.worldScale > 1) this.worldScale = 
+            
+            //ピンチの中間点
+            this.scaleCenterX = p1.x*0.5+p2.x*0.5;
+            this.scaleCenterY = p1.y*0.5+p2.y*0.5;
+        }
     },
     multiTouchEnd: function(e) {
+        this.pinchDistance = -1;
     },
 });
 

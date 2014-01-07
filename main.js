@@ -12,6 +12,8 @@
 
 enchant();
 
+var _DEBUG_ = true;
+
 //マップ設定
 var WORLD_SIZE = 320*3;        
 var MAX_PLANETS = 20;

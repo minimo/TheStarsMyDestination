@@ -195,44 +195,17 @@ Unit = enchant.Class.create(enchant.Group, {
 
         if (rand(100)>60)return;
 
-        var e = new Sprite(32, 32);
-        e.image = game.assets['assets/bomb.png'];
-        e.frame = 0;
-        e.x = to.x-16;
-        e.y = to.y-16;
-        e.delay = rand(5);
-        e.onenterframe = function() {
-            if (this.age < this.delay)return;
-            if (this.age % 3 == 0) {
-                this.frame++;
-                if (this.frame == 8) {
-                    this.remove();
-                }
-            }
-        }
+        var e = new Explode(to.x, to.y);
         this.parent.addChild(e);
+
 //        target.damage(this, 1);
         target.hp -= power;
         this.hp -= power;
     },
     dead: function() {
         this.using = false;
-
-        var e = new Sprite(32, 32);
-        e.image = game.assets['assets/bomb.png'];
-        e.frame = 0;
-        e.x = this.x-16;
-        e.y = this.y-16;
-        e.onenterframe = function() {
-            if (this.age % 3 == 0) {
-                this.frame++;
-                if (this.frame == 8) {
-                    this.remove();
-                }
-            }
-        }
-        this.parentNode.addChild(e);
-
+        var e = new Explode(this.x, this.y);
+        this.parent.addChild(e);
     },
     frame: {
         get: function() {

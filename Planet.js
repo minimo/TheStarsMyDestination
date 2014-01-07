@@ -136,20 +136,7 @@ Planet = enchant.Class.create(enchant.Group, {
 
         if (rand(100)>90)return;
 
-        var e = new Sprite(32, 32);
-        e.image = game.assets['assets/bomb.png'];
-        e.frame = 0;
-        e.x = to.x-16;
-        e.y = to.y-16;
-        e.parent = this.parent;
-        e.onenterframe = function() {
-            if (this.age % 3 == 0) {
-                this.frame++;
-                if (this.frame == 8) {
-                    this.remove();
-                }
-            }
-        }
+        var e = new Explode(to.x, to.y);
         this.parentNode.addChild(e);
 
         target.hp--;

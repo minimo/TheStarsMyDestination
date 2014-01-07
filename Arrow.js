@@ -92,7 +92,39 @@ Beam = enchant.Class.create(enchant.Group, {
         this.time = 0;
     },
     onenterframe: function() {
-        if (this.body.opacity < 0)this.parentNode.removeChild(this);
+        if (this.body.opacity < 0)this.remove();
+    },
+});
+
+
+//爆発
+Explode = enchant.Class.create(enchant.Sprite, {
+    initialize: function(x, y) {
+        enchant.Sprite.call(this, 32, 32);
+        this.image = game.assets['assets/bomb.png'];
+        this.frame = 0;
+        this.x = x-16;
+        this.y = y-16;
+        this.delay = rand(5);
+        this.visible = false;
+        this.addEventListener("enterframe", this.update);
+    },
+    update: function(e) {
+        if (this.age < this.delay)return;
+        this.visible = true;
+        if (this.age % 3 == 0) {
+            if (this.age > 10)this.opacity -= 0.2;
+            this.frame++;
+            if (this.frame > 7) {
+                this.visible = false;
+                this.remove();
+            }
+        }
+        if (this.opacity < 0)this.remove();
+        if (this.age > 30) {
+            this.visible = false;
+            this.remove();
+        }
     },
 });
 
